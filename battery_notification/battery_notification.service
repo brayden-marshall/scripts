@@ -1,0 +1,13 @@
+[Unit]
+Description=Notification script for low battery
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=brayden-marshall
+ExecStart=/home/brayden-marshall/scripts/battery_notification/battery_notification.py
+
+[Install]
+WantedBy=multi-user.target
