@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
 
+"""
+Sends a desktop notification when remaining battery percentage goes under a specified
+amount. Intended to be run as a systemd user unit (using the matching
+battery_notification.service file)
+"""
+
+LOW_PERCENTAGE = 20
+CRITICAL_PERCENTAGE = 10
+INTERVAL = 60
+
 import subprocess
+import logging
+from systemd.journal import JournalHandler
 import time
 
 def get_battery_percentage(upower_path):
-    # upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep percentage
+    # command: upower -i <upower_path> | grep percentage
     p1 = subprocess.Popen(
         ["upower", "-i", upower_path],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT
@@ -22,15 +34,18 @@ def get_battery_percentage(upower_path):
     return int(reply.decode('utf-8').strip().split()[1].strip('%'))
 
 def send_notification(message):
-    output = subprocess.check_output(
-        ["notify-send", message]
+    subprocess.check_output(
+        ["notify-send", "--urgency=critical", message]
     )
 
-
 if __name__=="__main__":
-    LOW_PERCENTAGE = 20
-    CRITICAL_PERCENTAGE = 10
+    log = logging.getLogger('battery_notification')
+    log.addHandler(JournalHandler())
+    log.setLevel(logging.INFO)
+    log.info("Started battery notification service")
 
+    # keep track of which notifications have been sent so we don't continuously
+    # send desktop notifications on every loop
     low_notified = False
     critical_notified = False
 
@@ -46,6 +61,7 @@ if __name__=="__main__":
                     .format(percentage)
             )
             low_notified = True
+            log.info("Sent low battery notification")
 
         if (percentage < CRITICAL_PERCENTAGE and not critical_notified):
             send_notification(
@@ -53,5 +69,12 @@ if __name__=="__main__":
                     .format(percentage)
             )
             critical_notified = True
+            log.info("Sent low battery notification")
 
-        time.sleep(60)
+        if (percentage >= LOW_PERCENTAGE):
+            low_notified = False
+
+        if (percentage >= CRITICAL_PERCENTAGE):
+            critical_notified = False
+
+        time.sleep(INTERVAL)

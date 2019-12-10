@@ -1,13 +1,13 @@
 [Unit]
 Description=Notification script for low battery
 StartLimitIntervalSec=0
+Wants=upower.service
 
 [Service]
 Type=simple
 Restart=always
 RestartSec=1
-User=brayden-marshall
-ExecStart=/home/brayden-marshall/scripts/battery_notification/battery_notification.py
+ExecStart=/home/brayden-marshall/scripts/systemd_units/battery_notification.py
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
