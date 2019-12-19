@@ -12,7 +12,12 @@ INTERVAL = 60
 
 import subprocess
 import logging
-from systemd.journal import JournalHandler
+import sys
+try:
+    from systemd.journal import JournalHandler
+except ModuleNotFoundError as e:
+    print(e)
+    sys.exit(1)
 import time
 
 def get_battery_percentage(upower_path):
