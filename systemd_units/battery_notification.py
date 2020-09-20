@@ -13,6 +13,7 @@ INTERVAL = 60
 import subprocess
 import logging
 import sys
+
 try:
     from systemd.journal import JournalHandler
 except ModuleNotFoundError as e:
